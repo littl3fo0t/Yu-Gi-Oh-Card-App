@@ -5,21 +5,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Yu-Gi-Oh! Crad Searching App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css">
 </head>
 
 <body>
+    <section class="is-center">
+        <div class="container">
+            <h1 class="title is-1">Yu-Gi-Oh! Card Searching App</h1>
+            <form>
+                <div class="field">
+                    <label for="cardName" class="label">Enter the exact card name here:</label>
+                    <div class="control">
+                        <input type="text" id="cardName" placeholder="example: Y-Yare Head" class="input">
+                    </div>
+                </div>
+                <div class="control">
+                    <button class="button is-primary" type="submit">Submit</button>
+                </div>
+            </form>
 
-    <form>
-        <div>
-            <label for="cardName">Enter the exact card name here:</label>
-            <input type="text" id="cardName" placeholder="example: Y-Yare Head">
+            <p></p>
+
+            <pre></pre>
         </div>
-        <button type="submit">Submit</button>
-    </form>
-
-    <p></p>
-
-    <pre></pre>
+    </section>
 
     <script>
         // Base YGOPRODeck API url
@@ -43,7 +52,7 @@
             if (!cardName) {
                 p.textContent = "Error: please enter a valid card name.";
                 return;
-            } 
+            }
             else {
                 // Clear any previous error message
                 p.textContent = "";
