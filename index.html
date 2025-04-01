@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Yu-Gi-Oh! Crad Searching App</title>
+</head>
+
+<body>
+
+    <form>
+        <div>
+            <label for="cardName">Enter the exact card name here:</label>
+            <input type="text" id="cardName" placeholder="example: Y-Yare Head">
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+
+    <p></p>
+
+    <pre></pre>
+
+    <script>
+        // Base YGOPRODeck API url
+        const url = "https://db.ygoprodeck.com/api/v7/cardinfo.php?name=";
+
+        // Get DOM elements
+        const form = document.querySelector("form");
+        const input = document.getElementById("cardName");
+        const pre = document.querySelector("pre");
+        const p = document.querySelector("p");
+
+        // Form event listener for on submit
+        form.addEventListener("submit", async event => {
+            // Prevent page from refreshing
+            event.preventDefault();
+
+            // Get card name from input field
+            const cardName = input.value;
+
+            // Validate card name
+            if (!cardName) {
+                p.textContent = "Error: please enter a valid card name.";
+                return;
+            } 
+            else {
+                // Clear any previous error message
+                p.textContent = "";
+
+                // Retrieve card details
+                const cardDetails = await getCardDetails(cardName);
+
+                // Display card details
+                await renderCardData(cardDetails);
+            }
+        });
+
+        const getCardDetails = async cardName => {
+            const encodedCardName = encodeURIComponent(cardName)
+            const endpoint = `${url}${encodedCardName}`;
+
+            try {
+                const response = await fetch(endpoint);
+                if (response.ok) {
+                    return response.json();
+                }
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+
+        const renderCardData = async cardDetails => {
+            pre.textContent = JSON.stringify(cardDetails, null, 2);
+        }
+    </script>
+
+</body>
+
+</html>
