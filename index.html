@@ -23,10 +23,42 @@
                     <button class="button is-primary" type="submit">Submit</button>
                 </div>
             </form>
-
-            <p></p>
-
-            <pre></pre>
+        </div>
+        <br>
+        <br>
+        <div class="is-hidden" id="errorMessage">
+            <article class="message is-danger">
+                <div class="message-header">
+                    <p>Error</p>
+                </div>
+                <div class="message-body"></div>
+            </article>
+        </div>
+        <div class="container" id="cardDetails">
+            <table class="table is-bordered is-fullwidth">
+                <tr>
+                    <th class="is-info" colspan="4" style="text-align: center;" id="cardName">Therion "King" Regulus</th>
+                </tr>
+                <tr>
+                    <th class="is-info">Attribute</th>
+                    <td id="cardAttribute">EARTH</td>
+                    <th class="is-info">Level/Rank/Link Rating</th>
+                    <td id="cardLevel">8</td>
+                </tr>
+                <tr>
+                    <th class="is-info">ATK</th>
+                    <td id="cardATK">2800</td>
+                    <th class="is-info">DEF</th>
+                    <td id="cardDEF">1600</td>
+                </tr>
+                <tr>
+                    <th class="is-info" colspan="4" style="text-align: center;" id="cardName">Machine Effect</th>
+                </tr>
+                <tr id="pendulumDetails">
+                    <th class="is-info" colspan="2">Pendulum Scale</th>
+                    <td id="pScale" colspan="2">8</td>
+                </tr>
+            </table>
         </div>
     </section>
 
@@ -37,8 +69,8 @@
         // Get DOM elements
         const form = document.querySelector("form");
         const input = document.getElementById("cardName");
-        const pre = document.querySelector("pre");
-        const p = document.querySelector("p");
+        const errorMsgBody = document.querySelector("div.message-body");
+        const errorMsgContainer = document.getElementById("errorMessage");
 
         // Form event listener for on submit
         form.addEventListener("submit", async event => {
@@ -50,12 +82,14 @@
 
             // Validate card name
             if (!cardName) {
-                p.textContent = "Error: please enter a valid card name.";
+                errorMsgBody.textContent = "Please enter a valid card name.";
+                errorMsgContainer.className = "container";
                 return;
             }
             else {
-                // Clear any previous error message
-                p.textContent = "";
+                // Clear any error messages
+                errorMsgBody.textContent = "";
+                errorMsgContainer.className = "is-hidden";
 
                 // Retrieve card details
                 const cardDetails = await getCardDetails(cardName);
@@ -66,22 +100,26 @@
         });
 
         const getCardDetails = async cardName => {
+            // Encode card name and make endpoint
             const encodedCardName = encodeURIComponent(cardName)
             const endpoint = `${url}${encodedCardName}`;
 
             try {
                 const response = await fetch(endpoint);
-                if (response.ok) {
-                    return response.json();
+                if (!response.ok) {
+                    throw new Error("Could not find the enetered card's details. Please verify the name and try again.");
                 }
+
+                return response.json();
             }
             catch (err) {
-                console.log(err);
+                errorMsgBody.textContent = err.message;
+                errorMsgContainer.className = "container";
             }
         }
 
         const renderCardData = async cardDetails => {
-            pre.textContent = JSON.stringify(cardDetails, null, 2);
+            //pre.textContent = JSON.stringify(cardDetails, null, 2);
         }
     </script>
 
