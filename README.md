@@ -45,6 +45,173 @@ The app does perform some simple form of input validation and will render an err
 ![Output for missing card name](./images/sample-missing-card-name-error.png)
 ![Output for invalid card name](./images/sample-invalid-card-name-error.png)
 
+### How does the App work?
+The input field is located in a simple `form` element:
+```html
+<form>
+    <div class="field">
+        <label for="cardName" class="label">Enter the exact card name here:</label>
+        <div class="control">
+            <input type="text" id="cardName" placeholder="example: Y-Yare Head" class="input">
+        </div>
+    </div>
+    <div class="control">
+        <button class="button is-primary" type="submit">Submit</button>
+    </div>
+</form>
+```
+
+We then make use of the `querySelector()` and `getElementById()` methods to grab the DOM elements:
+```js
+const form = document.querySelector("form");
+const input = document.getElementById("cardName");
+```
+
+Then we set up an event listener for the form's on-submit event to get and validate the input field value:
+```js
+form.addEventListener("submit", async event => {
+    // Prevent page from refreshing
+    event.preventDefault();
+
+    // Get card name from input field
+    const cardName = input.value;
+
+    // Validate card name
+    if (!cardName) {
+        errorMsgBody.textContent = "Please enter a valid card name.";
+        errorMsgContainer.className = "container";
+        return;
+    }
+    else {
+        // Clear any error messages
+        errorMsgBody.textContent = "";
+        errorMsgContainer.className = "is-hidden";
+
+        // Retrieve card details
+        const cardDetails = await getCardDetails(cardName);
+
+        // Display card details
+        await renderCardData(cardDetails);
+    }
+});
+```
+
+After this we can make a call to the YGOPRODeck API:
+```js
+const getCardDetails = async cardName => {
+    // Encode card name and make endpoint
+    const encodedCardName = encodeURIComponent(cardName)
+    const endpoint = `${url}${encodedCardName}`;
+
+    try {
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+            throw new Error("Could not find the enetered card's details. Please verify the name and try again.");
+        }
+
+        return response.json();
+    }
+    catch (err) {
+        errorMsgBody.textContent = err.message;
+        errorMsgContainer.className = "container";
+        cardDetailTable.className = "is-hidden";
+    }
+}
+```
+
+Finally, if the call was successful, we can render the data that was returned:
+```js
+const renderCardData = async cardDetails => {
+    // Extract card data
+    const cardData = cardDetails.data[0];
+
+    // Get DOM elements
+    const monsterCardDetails = document.querySelectorAll("tr.monsterCardDetails");
+    const name = document.getElementById("cName");
+    const attribute = document.getElementById("cardAttribute");
+    const level = document.getElementById("cardLevel");
+    const atk = document.getElementById("cardATK");
+    const def = document.getElementById("cardDEF");
+    const pScale = document.getElementById("pScale");
+    const pendulumEffect = document.getElementById("pendulumEffect");
+    const type = document.getElementById("cardType");
+    const cardText = document.getElementById("cardText");
+
+    // Display card details
+    name.textContent = cardData.name;
+    if (cardData.frameType === "spell" || cardData.frameType === "trap") {
+        type.textContent = cardData.humanReadableCardType;
+    } else {
+        type.textContent = `[${cardData.typeline.join("/")}]`;
+        attribute.textContent = cardData.attribute;
+        level.textContent = cardData.level ? cardData.level : cardData.linkval;
+        atk.textContent = cardData.atk;
+        def.textContent = cardData.def ? cardData.def : "N/A";
+        pScale.textContent = cardData.scale ? cardData.scale : "N/A";
+        pendulumEffect.textContent = cardData.pend_desc ? cardData.pend_desc : "N/A";
+    }
+    cardText.innerHTML = cardData.scale ? cardData.monster_desc.replace(/\r\n/g, '<br>') : cardData.desc.replace(/\r\n/g, '<br>');
+
+    // Make table visible
+    cardDetailTable.className = "container";
+    if (cardData.frameType === "spell" || cardData.frameType === "trap") {
+        monsterCardDetails.forEach(row => row.style.display = "none");
+    } else {
+        monsterCardDetails.forEach(row => row.style.display = "");
+    }
+}
+```
+
+The card details are displayed in a table:
+```html
+<div class="is-hidden" id="cardDetails">
+    <table class="table is-bordered is-fullwidth">
+        <tr>
+            <th class="is-info" colspan="4" style="text-align: center;" id="cName"></th>
+        </tr>
+        <tr class="monsterCardDetails">
+            <th class="is-info">Attribute</th>
+            <td id="cardAttribute"></td>
+            <th class="is-info">Level/Rank/Link Rating</th>
+            <td id="cardLevel"></td>
+        </tr>
+        <tr class="monsterCardDetails">
+            <th class="is-info">ATK</th>
+            <td id="cardATK"></td>
+            <th class="is-info">DEF</th>
+            <td id="cardDEF"></td>
+        </tr>
+        <tr>
+            <th class="is-info" colspan="4" style="text-align: center;" id="cardType"></th>
+        </tr>
+        <tr class="monsterCardDetails">
+            <th class="is-info" colspan="2">Pendulum Scale</th>
+            <td id="pScale" colspan="2"></td>
+        </tr class="monsterCardDetails">
+        <tr class="monsterCardDetails">
+            <th class="is-info" colspan="2">Pendulum Effect</th>
+            <td id="pendulumEffect" colspan="2"></td>
+        </tr>
+        <tr>
+            <th class="is-info" colspan="2">Card Text</th>
+            <td id="cardText" colspan="2"></td>
+        </tr>
+    </table>
+</div>
+```
+
+Any errors will be displayed in the dedicated error notification section:
+```html
+<div class="is-hidden" id="errorMessage">
+    <article class="message is-danger">
+        <div class="message-header">
+            <p>Error</p>
+        </div>
+        <div class="message-body"></div>
+    </article>
+</div>
+```
+
 ### App Limitations
 1. As mentioned above, you are required to enter the **exact** card name in order for the app to properly retrieve the data. The YGOPRODeck API does support fuzzy name search and searching by other properties such as the card type, attack stat and much more. As such, when I re-create the app using a web framework, I would like to enable support to search by multiple properties.
 2. A major aspect of the appeal of Yu-Gi-Oh! is the art of the cards, however, while the YGOPRODeck API does return an array of image URLs, as per the API notes, you are **not** expected to hotlink images directly from the website, least you risk your IP address being blacklisted by them. I did think about displaying a generitic card image where the frame would match the one of the searched card. However, there are so many possible card frame in Yu-Gi-Oh! (especially when you consider Pendulum cards), that I quickly dropped the idea.
