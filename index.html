@@ -39,13 +39,13 @@
                 <tr>
                     <th class="is-info" colspan="4" style="text-align: center;" id="cName"></th>
                 </tr>
-                <tr>
+                <tr class="monsterCardDetails">
                     <th class="is-info">Attribute</th>
                     <td id="cardAttribute"></td>
                     <th class="is-info">Level/Rank/Link Rating</th>
                     <td id="cardLevel"></td>
                 </tr>
-                <tr>
+                <tr class="monsterCardDetails">
                     <th class="is-info">ATK</th>
                     <td id="cardATK"></td>
                     <th class="is-info">DEF</th>
@@ -54,11 +54,11 @@
                 <tr>
                     <th class="is-info" colspan="4" style="text-align: center;" id="cardType"></th>
                 </tr>
-                <tr>
+                <tr class="monsterCardDetails">
                     <th class="is-info" colspan="2">Pendulum Scale</th>
                     <td id="pScale" colspan="2"></td>
-                </tr>
-                <tr>
+                </tr class="monsterCardDetails">
+                <tr class="monsterCardDetails">
                     <th class="is-info" colspan="2">Pendulum Effect</th>
                     <td id="pendulumEffect" colspan="2"></td>
                 </tr>
@@ -133,29 +133,39 @@
             const cardData = cardDetails.data[0];
 
             // Get DOM elements
+            const monsterCardDetails = document.querySelectorAll("tr.monsterCardDetails");
             const name = document.getElementById("cName");
             const attribute = document.getElementById("cardAttribute");
             const level = document.getElementById("cardLevel");
             const atk = document.getElementById("cardATK");
             const def = document.getElementById("cardDEF");
-            const type = document.getElementById("cardType");
             const pScale = document.getElementById("pScale");
             const pendulumEffect = document.getElementById("pendulumEffect");
+            const type = document.getElementById("cardType");
             const cardText = document.getElementById("cardText");
 
             // Display card details
             name.textContent = cardData.name;
-            attribute.textContent = cardData.attribute;
-            level.textContent = cardData.level ? cardData.level : cardData.linkval;
-            atk.textContent = cardData.atk;
-            def.textContent = cardData.def ? cardData.def : "N/A";
-            type.textContent = `[${cardData.typeline.join("/")}]`;
-            pScale.textContent = cardData.scale ? cardData.scale : "N/A";
-            pendulumEffect.textContent = cardData.pend_desc ? cardData.pend_desc : "N/A";
+            if (cardData.frameType === "spell" || cardData.frameType === "trap") {
+                type.textContent = cardData.humanReadableCardType;
+            } else {
+                type.textContent = `[${cardData.typeline.join("/")}]`;
+                attribute.textContent = cardData.attribute;
+                level.textContent = cardData.level ? cardData.level : cardData.linkval;
+                atk.textContent = cardData.atk;
+                def.textContent = cardData.def ? cardData.def : "N/A";
+                pScale.textContent = cardData.scale ? cardData.scale : "N/A";
+                pendulumEffect.textContent = cardData.pend_desc ? cardData.pend_desc : "N/A";
+            }
             cardText.innerHTML = cardData.scale ? cardData.monster_desc.replace(/\r\n/g, '<br>') : cardData.desc.replace(/\r\n/g, '<br>');
 
             // Make table visible
             cardDetailTable.className = "container";
+            if (cardData.frameType === "spell" || cardData.frameType === "trap") {
+                monsterCardDetails.forEach(row => row.style.display = "none");
+            } else {
+                monsterCardDetails.forEach(row => row.style.display = "");
+            }
         }
     </script>
 
